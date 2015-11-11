@@ -5,7 +5,7 @@ using System.Windows;
 
 namespace CefSharp.MinimalExample.Wpf.ViewModels
 {
-    public class MainViewModel
+    public class MainViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -13,7 +13,13 @@ namespace CefSharp.MinimalExample.Wpf.ViewModels
         public IWpfWebBrowser WebBrowser
         {
             get { return webBrowser; }
-            set { PropertyChanged.ChangeAndNotify(ref webBrowser, value, () => WebBrowser); }
+            set
+			{
+				PropertyChanged.ChangeAndNotify(ref webBrowser, value, () => WebBrowser);
+
+				if (webBrowser != null)
+					((ChromiumWebBrowser)webBrowser).LoadingStateChanged += webBrowser_LoadingStateChanged;
+			}
         }
 
         private string title;
@@ -35,5 +41,33 @@ namespace CefSharp.MinimalExample.Wpf.ViewModels
                 Application.Current.MainWindow.Title = "CefSharp.MinimalExample.Wpf - " + Title;
             }
         }
+
+		void webBrowser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
+		{
+			if (e.IsLoading)
+			{
+				BrowserHeight = "Auto";
+				BrowserVisibility = Visibility.Collapsed;
+			}
+			else
+			{
+				BrowserHeight = "500";
+				BrowserVisibility = Visibility.Visible;
+			}
+		}
+
+		private Visibility browserVisibility = Visibility.Collapsed;
+		public Visibility BrowserVisibility
+		{
+			get { return browserVisibility; }
+			set { PropertyChanged.ChangeAndNotify(ref browserVisibility, value, () => BrowserVisibility); }
+		}
+
+		private string browserHeight = "Auto";
+		public string BrowserHeight
+		{
+			get { return browserHeight; }
+			set { PropertyChanged.ChangeAndNotify(ref browserHeight, value, () => BrowserHeight); }
+		}
     }
 }
